@@ -4,7 +4,7 @@ output_file = "./output/medical_result.json"
 
 [llm]
 base_url = "https://dashscope.aliyuncs.com/compatible-mode/v1"
-api_key = "sk-025bf02caabc467e929da05044296197"
+api_key = "你的api_key"
 model = "qwen-turbo"
 
 # ==============================================
