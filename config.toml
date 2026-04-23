@@ -1,0 +1,112 @@
+[paths]
+input_folder = "./pdfs"
+output_file = "./output/medical_result.json"
+
+[llm]
+base_url = "https://dashscope.aliyuncs.com/compatible-mode/v1"
+api_key = "sk-025bf02caabc467e929da05044296197"
+model = "qwen-turbo"
+
+# ==============================================
+# 1. 基础生命体征与体格检查数据
+# ==============================================
+[clean_rules.vitals]
+prompt = """
+你是医疗数据清洗专家。从以下体检报告中提取信息，输出JSON格式：
+{
+    "height": 身高数值(数字，单位cm),
+    "weight": 体重数值(数字，单位kg),
+    "blood_pressure_systolic": 收缩压数值(数字),
+    "blood_pressure_diastolic": 舒张压数值(数字),
+    "internal_medicine_exam": "内科检查的完整原始描述文本",
+    "surgery_exam": "外科检查的完整原始描述文本",
+    "lung_abnormal": 根据内科检查判断是否有肺部异常音，有湿啰音/干啰音且无否定词则为true，否则false,
+    "breast_nodule": 根据外科检查判断是否有乳腺结节，有结节/肿块则为true，否则false,
+    "breast_nodule_size": "乳腺结节大小，如'2.2cm×1.4cm'，无则null",
+    "breast_nodule_properties": "乳腺结节特征，如'质硬，边界不清，活动度差'，无则null"
+}
+"""
+
+# ==============================================
+# 2. 实验室检查数据（LIS）
+# ==============================================
+[clean_rules.lab]
+prompt = """
+你是医疗数据清洗专家。从以下体检报告中提取实验室检查信息，输出JSON格式：
+{
+    "fasting_glucose": 空腹血糖数值(数字，单位mmol/L),
+    "triglyceride": 甘油三酯数值(数字，单位mmol/L),
+    "urine_protein_qualitative": "尿蛋白定性结果，如'++'、'+'、'-'等",
+    "urine_protein_semiquantitative": 尿蛋白半定量数值，将'++'映射为2，'+'映射为1，'+/-'映射为0.5，'-'映射为0,
+    "creatinine": 肌酐数值(数字，单位μmol/L),
+    "tbs_result": "宫颈细胞学TBS分级结果，如'ASC-US'、'LSIL'、'HSIL'等"
+}
+"""
+
+# ==============================================
+# 3. 辅助检查数据（功能与影像）
+# ==============================================
+[clean_rules.image]
+prompt = """
+你是医疗数据清洗专家。从以下体检报告中提取影像检查信息，输出JSON格式：
+{
+    "thyroid_nodule_present": 是否有甲状腺结节(true/false),
+    "thyroid_nodule_size_mm": 甲状腺结节最大直径数值(数字，单位mm),
+    "thyroid_nodule_position": "甲状腺结节位置，如'左叶'、'右叶'等",
+    "thyroid_tirads_grade": "TI-RADS分级数值，如3、4a、4b等",
+    "lung_nodule_present": 是否有肺结节(true/false),
+    "lung_nodule_size_mm": 肺结节最大直径数值(数字，单位mm),
+    "lung_nodule_position": "肺结节位置，如'右肺上叶'、'左肺下叶'等",
+    "lung_nodule_density": "肺结节密度，如'磨玻璃'、'实性'、'混合'等",
+    "lung_nodule_border": "肺结节边界特征，如'边界清'、'毛刺'、'分叶'等"
+}
+"""
+
+# ==============================================
+# 4. 慢性病专项风险筛查数据
+# ==============================================
+[clean_rules.risk]
+prompt = """
+你是医疗数据清洗专家。从以下体检报告中提取慢病风险筛查信息，输出JSON格式：
+{
+    "ambp_systolic": 动态血压收缩压均值(数字),
+    "ambp_diastolic": 动态血压舒张压均值(数字),
+    "carotid_imt": 颈动脉内中膜厚度数值(数字，单位mm),
+    "uacr": 尿微量白蛋白/肌酐比值数值(数字，单位mg/g),
+    "ldct_finding": "LDCT检查发现描述"
+}
+"""
+
+# ==============================================
+# 5. 问卷与量表数据
+# ==============================================
+[clean_rules.scale]
+prompt = """
+你是医疗数据清洗专家。从以下体检报告中提取量表评估信息，输出JSON格式：
+{
+    "mmse_raw_score": MMSE原始得分数值(数字),
+    "mmse_total": MMSE总分，通常为30,
+    "education_years": 受教育年限，从文本中推断或默认12,
+    "tcm_constitution": "中医体质类型，如'痰湿质'、'阳虚质'等"
+}
+"""
+
+# ==============================================
+# 6. 人口学与行为数据
+# ==============================================
+[clean_rules.demographic]
+prompt = """
+你是医疗数据清洗专家。从以下体检报告中提取人口学和行为数据，输出JSON格式：
+{
+    "age": 年龄数值(数字),
+    "gender": "性别字符串，'男'或'女'",
+    "nationality": "民族",
+    "smoking_description": "吸烟史原始描述",
+    "smoking_cig_per_day": 每日吸烟支数(数字，从描述中提取),
+    "smoking_years": 吸烟年数(数字，从描述中提取),
+    "drinking_description": "饮酒史原始描述",
+    "drinking_type": "饮酒类型，如'白酒'、'啤酒'、'红酒'等",
+    "drinking_amount_liang": 每日饮酒量(数字，单位:两，白酒),
+    "drinking_years": 饮酒年数(数字)
+}
+"""
